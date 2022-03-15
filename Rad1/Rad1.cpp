@@ -34,6 +34,8 @@ int main()
 	}
 	glfwMakeContextCurrent(win);
 
+	cout << "123123";
+
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		cout << "Error load GLAD" << endl;
