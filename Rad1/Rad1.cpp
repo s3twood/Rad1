@@ -8,9 +8,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
 #include <fstream>
 #include "Shader.h"
+#include "Camera.h"
 
 using namespace std;
 
@@ -29,7 +29,7 @@ struct ModelTransform
 	}
 };
 
-
+Camera camera(glm::vec3(0.f, 0.f, -5.f));
 
 struct Color { float r, g, b, a; };
 
@@ -48,43 +48,87 @@ ModelTransform polygonTrans = { glm::vec3(0.0f,0.0f,0.0f),
 float cam_dist = 5.0f;
 
 
-void processInput(GLFWwindow* win)
+void processInput(GLFWwindow* win, float dt)
 {
+
+	float speed = 1.0f * dt;
 	if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(win, true);
-	if (glfwGetKey(win, GLFW_KEY_1) == GLFW_PRESS)
-		background = { 0.f,1.f,0.f,1.f };
-	if (glfwGetKey(win, GLFW_KEY_2) == GLFW_PRESS)
-		background = { 1.f,0.f,0.f,1.f };
-	if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
-		polygonTrans.position.y += 0.01f;
-	if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
-		polygonTrans.position.y -= 0.01f;
-	if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
-		polygonTrans.position.x -= 0.01f;
-	if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
-		polygonTrans.position.x += 0.01f;
 
-	if (glfwGetKey(win, GLFW_KEY_H) == GLFW_PRESS)
-		cam_dist += 0.05f;
 	if (glfwGetKey(win, GLFW_KEY_K) == GLFW_PRESS)
-		cam_dist -= 0.05f;
+		polygonTrans.position.x += speed;
+	if (glfwGetKey(win, GLFW_KEY_H) == GLFW_PRESS)
+		polygonTrans.position.x -= speed;
 
+	if (glfwGetKey(win, GLFW_KEY_U) == GLFW_PRESS)
+		polygonTrans.position.y += speed;
+	if (glfwGetKey(win, GLFW_KEY_J) == GLFW_PRESS)
+		polygonTrans.position.y -= speed;
+
+
+	uint32_t dir = 0;
 
 	if (glfwGetKey(win, GLFW_KEY_UP) == GLFW_PRESS)
-		polygonTrans.rotation.x -= 0.1f;
+		dir |= CAM_UP;
 	if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS)
-		polygonTrans.rotation.x += 0.1f;
+		dir |= CAM_DOWN;
+	if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
+		dir |= CAM_FORWARD;
+	if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
+		dir |= CAM_BACKWARD;
+	if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
+		dir |= CAM_LEFT;
+	if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
+		dir |= CAM_RIGHT;
 
-	if (glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS)
-		polygonTrans.rotation.y -= 0.1f;
-	if (glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		polygonTrans.rotation.y += 0.1f;
 
+
+	double newx = 0.f, newy = 0.f;
+	glfwGetCursorPos(win,&newx,&newy);
+	static double x = newx, y = newy;
+	double xoffset = newx - x;
+	double yoffset = newy - y;
+	x = newx;
+	y = newy;
+
+	camera.Move(dir, dt);
+	camera.Rotate(xoffset, -yoffset);
+
+}
+
+void OnScroll(GLFWwindow* win, double x, double y)
+{
+	camera.ChangeFOV(y);
+}
+
+bool wireFrameMode = false;
+
+void UpdatePolygonMode()
+{
+	if (wireFrameMode)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	else
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void OnKeyAction(GLFWwindow* win, int key, int scancode, int action, int mods)
+{
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_SPACE:
+			wireFrameMode = !wireFrameMode;
+			UpdatePolygonMode();
+			break;
+		}
+	}
 }
 
 
 typedef unsigned char byte;
+
+int height = 1280, weight = 720;
 
 int main()
 {
@@ -93,7 +137,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* win = glfwCreateWindow(900, 900, "openglwin", NULL, NULL);
+	GLFWwindow* win = glfwCreateWindow(height, weight, "openglwin", NULL, NULL);
 
 	if (win == NULL)
 	{
@@ -111,9 +155,15 @@ int main()
 	}
 
 	glfwSetFramebufferSizeCallback(win, onResize);
-	glViewport(0, 0, 900, 900);
+	glfwSetScrollCallback(win, OnScroll);
+	glfwSetKeyCallback(win, OnKeyAction);
 
+	glViewport(0, 0, height, weight);
 	glEnable(GL_DEPTH_TEST);
+	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	UpdatePolygonMode();
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CW);
 
 	int img_width, img_height, channels;
 	byte* data = stbi_load("textures/cat.png", &img_width, &img_height, &channels, 0);
@@ -204,9 +254,22 @@ int main()
 
 	
 
+	ModelTransform cube2 = { glm::vec3(5.0f,0.0f,0.0f),
+									glm::vec3(0.0f,0.0f,0.0f),
+									glm::vec3(1.0f,1.0f,1.0f)
+	};
+	
+
+	double oldTime = glfwGetTime();
+	double newTime = glfwGetTime();
+	double deltaTime = glfwGetTime();
 	while (!glfwWindowShouldClose(win))
 	{
-		processInput(win);
+		newTime = glfwGetTime();
+		deltaTime = newTime - oldTime;
+		oldTime = newTime;
+
+		processInput(win,deltaTime);
 		glClearColor(background.r, background.g, background.b, background.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
@@ -218,32 +281,54 @@ int main()
 		polygon_shader->use();
 
 
-		glm::vec3 pos_vec = glm::vec3(0.0f, 0.0f, cam_dist);
-		glm::vec3 target_vec = glm::vec3(0.f, 0.f, 0.0f);
-		glm::vec3 up_vec = glm::vec3(0.f, 1.f, 0.0f);
 
-		glm::mat4 camera = glm::lookAt(pos_vec,target_vec,up_vec);
-		//glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.f);
-		glm::mat4 projection = glm::perspective(45.f, 1.0f, 0.01f, 100.0f);
-
-
-
-
-		glm::mat4 model = glm::mat4(1.0f);
 		
+
+
+		glm::mat4 pv = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+		
+		
+		
+		glm::mat4 model = glm::mat4(1.0f);
+		polygonTrans.rotation.y = glfwGetTime()*30;
 		model = glm::translate(model, polygonTrans.position);
 		model = glm::rotate(model, glm::radians(polygonTrans.rotation.x), glm::vec3(1.0f,0.0f,0.0f));
 		model = glm::rotate(model, glm::radians(polygonTrans.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(polygonTrans.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::scale(model, polygonTrans.scale);
 
-		glm::mat4 pvm = projection * camera * model;
 
-		polygon_shader->setMatrix4F("pvm",pvm);
+
+
+
+
+		glm::mat4 pvm = pv * model;
+		polygon_shader->setMatrix4F("pvm", pvm);
+		polygon_shader->setBool("wireframe", wireFrameMode);
 		
 		glBindTexture(GL_TEXTURE_2D, cat_texture);
 		glBindVertexArray(VAO_polygon);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+
+
+		model = glm::mat4(1.0f);
+
+		cube2.rotation.x = glfwGetTime() * 50;
+		cube2.position.x = sin(glfwGetTime()) + 5.f;
+		model = glm::translate(model, cube2.position);
+		model = glm::rotate(model, glm::radians(cube2.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(cube2.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(cube2.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model, cube2.scale);
+
+
+		pvm = pv * model;
+		polygon_shader->setMatrix4F("pvm", pvm);
+		polygon_shader->setBool("wireframe", wireFrameMode);
+
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
 
 		glfwSwapBuffers(win);
 		glfwPollEvents();

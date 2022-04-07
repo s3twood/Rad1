@@ -8,7 +8,6 @@ out vec2 texCoords;
 
 uniform mat4 pvm;
 
-
 void main()
 {
 	gl_Position = pvm*vec4(aPos.xyz, 1.0f);

@@ -5,9 +5,13 @@ in vec2 texCoords;
 out vec4 outColor;
 
 uniform sampler2D outTexture;
+uniform bool wireframe;
 
 void main()
 {
-	outColor = texture(outTexture, texCoords) * vec4(vertColor,1.0f);
-	//outColor = vec4(vertColor, 1.0f);
+	if (wireframe)
+		outColor = vec4(vertColor, 1.0f);
+	else
+		outColor = texture(outTexture, texCoords) * vec4(vertColor,1.0f);
+	
 }
