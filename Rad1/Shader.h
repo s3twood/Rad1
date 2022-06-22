@@ -17,6 +17,7 @@ public:
 	void setInt(const std::string& name, int value) const;
 	void setFloat(const std::string& name, float value) const;
 	void setFloatVec(const std::string& name, float* vec, int vec_size) const;
+	void setVec3(const std::string& name, glm::vec3 vec) const;
 	void setMatrix4F(const std::string& name, glm::mat4& m);
 	unsigned int ID();
 	

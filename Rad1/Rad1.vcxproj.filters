@@ -30,6 +30,15 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -41,12 +50,46 @@
     <ClInclude Include="Camera.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basic.frag">
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\basic.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\light.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\light.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="packages.config" />
+    <None Include="shaders\backpack.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\backpack.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\dust2.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\dust2.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\pick.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\pick.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

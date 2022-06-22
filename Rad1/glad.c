@@ -88,7 +88,8 @@ static
 int open_gl(void) {
 #ifdef __APPLE__
     static const char *NAMES[] = {
-        "../Frameworks/OpenGL.framework/OpenGL",
+        "../
+		works/OpenGL.framework/OpenGL",
         "/Library/Frameworks/OpenGL.framework/OpenGL",
         "/System/Library/Frameworks/OpenGL.framework/OpenGL",
         "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
